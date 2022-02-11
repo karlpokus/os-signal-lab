@@ -23,12 +23,23 @@ func interrupt() <-chan os.Signal {
 	return c
 }
 
+// repeat listens for signals forever
+func repeat() {
+	for s := range interrupt() {
+		log.Printf("caught signal: %s", s)
+	}
+}
+
+// onceGraceful listens for one signal and simulates a graceful exit
+func onceGraceful() {
+	log.Printf("caught signal: %s", <- interrupt())
+	log.Println("waiting 3s")
+	<-time.After(3 * time.Second)
+}
+
 func main() {
 	log.Printf("signal-catcher started. pid %d", os.Getpid())
 	log.Println("waiting on signal")
-	s := <-interrupt()
-	log.Printf("caught signal: %s", s)
-	log.Println("waiting 3s")
-	<-time.After(3 * time.Second)
+	onceGraceful() // repeat
 	log.Println("waiting done. exiting")
 }
